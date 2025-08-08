@@ -59,13 +59,11 @@ def text_to_hash_art(
     except IOError as e:
         raise ValueError(f"字体加载失败: {e}")
 
-    # --- 计算文本尺寸 ---
     temp_img = Image.new("L", (1, 1))
     temp_draw = ImageDraw.Draw(temp_img)
     bbox = temp_draw.textbbox((0, 0), text, font=font)
     text_width, text_height = bbox[2] - bbox[0], bbox[3] - bbox[1]
 
-    # --- 处理字体底部裁剪 ---
     if fix_bottom_cut:
         ascent, descent = font.getmetrics()
         text_height += max(descent, margin)
@@ -78,17 +76,15 @@ def text_to_hash_art(
 
     img_array = np.array(img)
     if output_width and output_width < img_width:
-        try:
-            from skimage.transform import resize
-            scale = output_width / img_width
-            img_array = resize(
-                img_array,
-                (int(img_height * scale), output_width),
-                anti_aliasing=False
-            )
-            img_array = (img_array * 255).astype(np.uint8)
-        except ImportError:
-            print("警告：未安装scikit-image，忽略缩放")
+        from skimage.transform import resize
+        scale = output_width / img_width
+        img_array = resize(
+            img_array,
+            (int(img_height * scale), output_width),
+            anti_aliasing=False
+        )
+        img_array = (img_array * 255).astype(np.uint8)
+
 
     result_text = "\n".join(
         "".join(char if pixel < threshold else bg_char for pixel in row)
